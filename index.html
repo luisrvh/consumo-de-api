@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animación de Degradado con API</title>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+
+    #resultados {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      color: #fff;
+      text-align: center;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="gradientCanvas"></canvas>
+
+  <div id="resultados">
+    <!-- Aquí se mostrarán los resultados de la API -->
+    <h1>Usuarios Aleatorios</h1>
+    <table id="usuariosTable">
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Fecha de nacimiento</th>
+        </tr>
+      </thead>
+      <tbody id="usuariosBody"></tbody>
+    </table>
+    <button onclick="fetchAndDisplayUsers()">Siguiente Usuario</button>
+  </div>
+
+  <script>
+    // Función para generar un degradado en movimiento constante
+    function createConstantMovementGradient() {
+      const canvas = document.getElementById('gradientCanvas');
+      const ctx = canvas.getContext('2d');
+
+      // Establecer el tamaño del canvas como el tamaño de la ventana
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Variable para el movimiento constante
+      let position = 0;
+
+      // Función para animar el degradado constantemente
+      function animateConstantMovementGradient() {
+        // Incrementar la posición para mover el degradado
+        position += 2;
+
+        // Ajustar la posición para que se repita el degradado
+        if (position > canvas.width) {
+          position = 0;
+        }
+
+        // Definir las esquinas del degradado
+        const gradient = ctx.createLinearGradient(position, 0, position + canvas.width, 0);
+        gradient.addColorStop(0, '#3498db'); // Color inicial
+        gradient.addColorStop(1, '#e74c3c'); // Color final
+
+        // Limpiar el canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Aplicar el degradado al contexto del canvas
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Solicitar el próximo cuadro de animación
+        requestAnimationFrame(animateConstantMovementGradient);
+      }
+
+      // Iniciar la animación
+      animateConstantMovementGradient();
+    }
+
+    // Función para consumir la API y mostrar la información
+    function fetchAndDisplayUsers() {
+      const apiUrl = 'https://randomuser.me/api/';
+
+      fetch(apiUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error al cargar la API. Código de estado: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const usuario = data.results[0];
+          const usuariosBody = document.getElementById('usuariosBody');
+          usuariosBody.innerHTML = `
+            <tr>
+              <td><img src="${usuario.picture.large}" alt="Imagen de usuario"></td>
+              <td>${usuario.name.title} ${usuario.name.first} ${usuario.name.last}</td>
+              <td>${usuario.email}</td>
+              <td>${usuario.dob.date}</td>
+            </tr>
+          `;
+        })
+        .catch(error => {
+          console.error('Error al consumir la API:', error);
+        });
+    }
+
+    // Ejecutar las funciones al cargar la página
+    window.addEventListener('load', () => {
+      createConstantMovementGradient();
+      fetchAndDisplayUsers();
+    });
+
+    // Volver a generar el degradado al cambiar el tamaño de la ventana
+    window.addEventListener('resize', createConstantMovementGradient);
+  </script>
+
+</body>
+</html>
